@@ -1,0 +1,37 @@
+name: API Tests - Dog API
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Run Maven tests
+        run: mvn -B clean test
+
+      - name: Package Allure results
+        if: always()
+        run: |
+          mkdir -p artifact
+          cp -r target/surefire-reports artifact/surefire-reports || true
+          cp -r target/allure-results artifact/allure-results || true
+
+      - name: Upload test results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results
+          path: artifact
